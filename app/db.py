@@ -29,6 +29,6 @@ def reset(path: Path | None = None) -> sqlite3.Connection:
 def connect(path: Path | None = None) -> sqlite3.Connection:
     path = path or DB_PATH
     if not path.exists():
-        return reset(path)
+        reset(path).close()  # create the sample data, then reopen read-only like every other run
     # Phase 6 (PB-09): the assistant only ever reads, so it opens the database read-only.
     return sqlite3.connect(f"file:{path}?mode=ro", uri=True, isolation_level=None)
