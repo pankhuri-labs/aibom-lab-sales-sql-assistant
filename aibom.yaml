@@ -1,0 +1,13 @@
+# Ownership and context that code cannot tell a scanner. Read by the CS54 AI-BOM scanner (phase 2).
+app: aibom-lab-sales-sql-assistant
+owner: sales-operations-analytics (lab)
+business_criticality: medium
+environment: lab
+exposure: internal
+authentication: employee sign-in (simulated by a user name in the request)
+autonomy: acts-alone             # generated SQL runs without review
+data_classification:
+  sales_db: confidential; salaries table is restricted
+identities:
+  - name: sales.db connection
+    scope: read-write             # broader than a reporting tool needs
