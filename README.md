@@ -40,3 +40,6 @@ The tests use a scripted fake model, so they need no Ollama:
 ```
 LLM_BACKEND=fake python -m pytest -q
 ```
+
+The attack tests in `tests/test_attacks.py` show as `x` (expected failure): each one asserts the safe behaviour and fails today because the weakness is planted. To see why each attack succeeds, run `python -m pytest -q --runxfail tests/test_attacks.py`.
+
