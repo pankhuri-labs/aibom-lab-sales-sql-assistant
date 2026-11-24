@@ -6,7 +6,7 @@ from app.assistant import ask
 def test_total_sales_by_region(tmp_path):
     conn = db.reset(tmp_path / "t.db")
     out = ask("What are total sales by region?", "asha", conn)
-    assert dict(out["rows"])["South"] == 1800.0
+    assert dict(out["rows"]) == {"North": 2000.0}  # since phase 6, asha's view holds North only
 
 
 def test_orders_for_a_region(tmp_path):
@@ -21,4 +21,13 @@ def test_api_answers(tmp_path, monkeypatch):
 
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.db")
     r = TestClient(main.app).post("/ask", json={"question": "How many orders?", "user": "ravi"})
-    assert r.json()["rows"] == [[5]]
+    assert r.json()["rows"] == [[2]]  # ravi sees South only
+
+
+def test_unknown_employee_is_refused(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from app import main
+
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.db")
+    r = TestClient(main.app).post("/ask", json={"question": "How many orders?", "user": "mallory"})
+    assert r.status_code == 403

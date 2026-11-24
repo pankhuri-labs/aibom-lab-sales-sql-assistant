@@ -30,5 +30,5 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     path = path or DB_PATH
     if not path.exists():
         return reset(path)
-    # Weakness AT-09: read-write connection for a reporting tool.
-    return sqlite3.connect(path, isolation_level=None)
+    # Phase 6 (PB-09): the assistant only ever reads, so it opens the database read-only.
+    return sqlite3.connect(f"file:{path}?mode=ro", uri=True, isolation_level=None)
