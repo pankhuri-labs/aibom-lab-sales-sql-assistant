@@ -1,4 +1,5 @@
-"""Model client. Ollama by default; a scripted fake model for tests (LLM_BACKEND=fake)."""
+"""Model client. Ollama by default; the CS54 gateway (LLM_BACKEND=gateway, phase 7); a scripted
+fake model for tests (LLM_BACKEND=fake)."""
 import json
 import os
 import re
@@ -6,15 +7,26 @@ import urllib.request
 
 
 def to_sql(system: str, question: str) -> str:
-    if os.environ.get("LLM_BACKEND", "ollama") == "fake":
+    backend = os.environ.get("LLM_BACKEND", "ollama")
+    if backend == "fake":
         return _fake_model(question)
-    payload = {"model": os.environ.get("SQL_MODEL", "gemma2:2b"),
-               "messages": [{"role": "system", "content": system}, {"role": "user", "content": question}],
-               "stream": False, "options": {"temperature": 0}}
-    req = urllib.request.Request(f"{os.environ.get('OLLAMA_URL', 'http://localhost:11434')}/api/chat",
-                                 data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        text = json.loads(resp.read())["message"]["content"]
+    model = os.environ.get("SQL_MODEL", "gemma2:2b")
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
+    if backend == "gateway":
+        # Phase 7: through the CS54 gateway, with this app's own key (never a provider key).
+        req = urllib.request.Request(
+            f"{os.environ.get('GATEWAY_URL', 'http://localhost:4000')}/chat/completions",
+            data=json.dumps({"model": model, "messages": messages, "temperature": 0, "max_tokens": 300}).encode(),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {os.environ['GATEWAY_KEY']}"})
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            text = json.loads(resp.read())["choices"][0]["message"]["content"]
+    else:
+        req = urllib.request.Request(f"{os.environ.get('OLLAMA_URL', 'http://localhost:11434')}/api/chat",
+                                     data=json.dumps({"model": model, "messages": messages, "stream": False,
+                                                      "options": {"temperature": 0}}).encode(),
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            text = json.loads(resp.read())["message"]["content"]
     return re.sub(r"^```(?:sql)?|```$", "", text.strip(), flags=re.M).strip()
 
 
