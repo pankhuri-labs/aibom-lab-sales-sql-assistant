@@ -27,9 +27,9 @@ def _fake_model(question: str) -> str:
         return asked.group(1).strip()
     region = re.search(r"region (\w+)", q)
     if "total" in q and "region" in q:
-        return "SELECT region, SUM(amount) AS total FROM orders GROUP BY region"
+        return "SELECT region, SUM(amount) AS total FROM my_orders GROUP BY region"
     if "salar" in q:
         return "SELECT employee, region, salary FROM salaries"
     if region:
-        return f"SELECT * FROM orders WHERE region = '{region.group(1).title()}'"
-    return "SELECT COUNT(*) AS orders FROM orders"
+        return f"SELECT * FROM my_orders WHERE region = '{region.group(1).title()}'"
+    return "SELECT COUNT(*) AS orders FROM my_orders"

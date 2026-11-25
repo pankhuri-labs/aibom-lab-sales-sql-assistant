@@ -5,9 +5,10 @@ business_criticality: medium
 environment: lab
 exposure: internal
 authentication: employee sign-in (simulated by a user name in the request)
-autonomy: acts-alone             # generated SQL runs without review
+autonomy: acts-alone             # generated SQL runs without review, but only as one SELECT under a database authorizer (phase 6)
 data_classification:
   sales_db: confidential; salaries table is restricted
 identities:
   - name: sales.db connection
-    scope: read-write             # broader than a reporting tool needs
+    scope: read-only              # phase 6 (PB-09): mode=ro, SELECT-only authorizer
+    row_scope: own region only, through a per-session view; salaries denied (phase 6, PB-10)
